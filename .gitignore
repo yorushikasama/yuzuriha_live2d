@@ -5,7 +5,9 @@ out/
 node_modules/
 
 # 大体积原始资产（如需共享请用 Git LFS）
-# yuzuriha.psd 与 yuzuriha.psd2live 是工程源文件，保留
+# yuzuriha.psd（29MB）保留；yuzuriha.psd2live 已 294MB，超 GitHub 100MB 单文件限制，
+# 不再入库：本地文件即工程真相（含全部修复），重新导出用 PSD2Live 打开它
+*.psd2live
 
 # Python 缓存
 __pycache__/

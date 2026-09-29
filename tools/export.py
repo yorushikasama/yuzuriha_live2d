@@ -32,6 +32,19 @@ def main():
     for w in sc.get("warnings") or []:
         print("  warning:", str(w)[:200])
 
+    # Regression guard: the alpha-noise bug (settings.alphaThreshold = 1) used to push
+    # faceRig.radiusX to 1335 (>2670px face width) and fling the head off the neck.
+    # If the project state ever reverts (e.g. the app restarts with an unsaved project),
+    # fail loudly here instead of publishing a broken model.
+    report = json.load(open(os.path.join(OUT, "yuzuriha.psd2live.json"), encoding="utf-8"))
+    rig = report.get("faceRig") or {}
+    rx, ry, az = rig.get("radiusX", 0), rig.get("radiusY", 0), rig.get("initialAngleZ", 0)
+    if not (0 < rx < 200 and 0 < ry < 300 and abs(az) < 5):
+        raise SystemExit(
+            f"FACE RIG LOOKS WRONG: radiusX={rx} radiusY={ry} initialAngleZ={az}. "
+            "Expected ~71/~100/~0. The project has probably lost the alphaThreshold=64 "
+            "fix (settings.alphaThreshold). Do NOT publish this export.")
+
     # publish the runtime-relevant files (textures are unchanged but copying all
     # of them keeps the deploy folder self-consistent). The .cmo3 editor project
     # and the .psd2live.json diagnostic report are not runtime files and must not

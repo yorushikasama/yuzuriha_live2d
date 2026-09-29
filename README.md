@@ -7,7 +7,7 @@
 
 ```
 ├─ yuzuriha.psd              分层源图（29 MB，1536×1536）
-├─ yuzuriha.psd2live         PSD2Live 工程（自包含，可重新导出）
+├─ yuzuriha.psd2live         PSD2Live 工程（294 MB；超 GitHub 100MB 限制未入库，本地可重新导出）
 ├─ 模型说明.md                制作记录：踩过的坑、每轮修复的做法与结论
 ├─ Live2D-PSD分层与命名规范.md  分层/命名标准，以及"为运动而画"的要点
 ├─ 楪祈-素材补绘工单.md        眼睛/嘴/鼻的补画清单（含 AI 参考图 prompt）
@@ -108,6 +108,10 @@ controller 会用到全范围，内置 idle/nod/shake 动作幅度更小）。
   0→0.5→1 时高度 1.1→3.7→7.5 px 能正常开合；但静息只有 1 px 高，**张口素材
   （口腔/牙/舌）源图里没有**，只能靠几何插值。留待 Cubism Editor 用 PSD 素材补齐。
 - **鼻子**：源图仅 6.6×7.4 px，位置正确、随头转动，同样留待 Cubism 里补画。
+- **眉毛已修**（draw_order）：PSD 里 `eyebrow` 图层本就压在不透明的 `face`
+  图层之下，PSD2Live 照搬层序导致眉毛被脸盖住。已用 MCP `structure` 把三个
+  眉网格提到脸之上（仍在刘海之下），`ParamBrowLY/RY` 挑眉动画随之可见。
+  详见 `模型说明.md` 第七章。
 
 > 注：alphaThreshold 修正也顺带治好了嘴。修复前 `mouth` 图层因 (1535,1535) 那个
 > 孤立 alpha=39 像素被撑成整画布包围盒，网格落到披风上；现在阈值滤掉了它，
