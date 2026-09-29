@@ -68,6 +68,32 @@ const { live2d } = PIXI.live2d;
   window.__model = model;
   app.stage.addChild(model);
 
+  // 发珠渲染顺序修正:PSD 里 headwear(红发珠)是最顶层,但 PSD2Live 1.3.0 按语义
+  // 角色排序把它排到了前发之下,而 structure 的 draw_order 编辑对无参数轴的静态
+  // 网格是静默空操作,导出的 moc 里发珠被刘海盖住。这里在运行时对调两者的渲染
+  // 顺序(渲染器以 renderOrder 为槽位下标,必须对调而不是加一)。升级 PSD2Live
+  // 后若导出顺序正确,此段自动成为空操作(条件不成立)。
+  {
+    const core = model.internalModel.coreModel;
+    const ids = [];
+    for (let i = 0; i < core.getDrawableCount(); i++) ids.push(core.getDrawableId(i));
+    const hw = ids.indexOf("ArtMeshHeadwear");
+    const fh = ids.indexOf("ArtMeshFrontHair");
+    if (hw >= 0 && fh >= 0) {
+      const rawOrders = core.getDrawableRenderOrders.bind(core);
+      core.getDrawableRenderOrders = function () {
+        const arr = rawOrders();
+        if (arr[hw] < arr[fh]) {
+          const c = Int32Array.from(arr);
+          c[hw] = arr[fh];
+          c[fh] = arr[hw];
+          return c;
+        }
+        return arr;
+      };
+    }
+  }
+
   // Fit the model to the viewport and place it at the CONFIG anchor.
   // The 1536x1536 PSD canvas is mostly empty margin: the character only spans
   // these fractions of it (measured from this export at neutral pose). Sizing
