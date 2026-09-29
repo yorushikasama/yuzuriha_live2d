@@ -1,0 +1,12 @@
+# 工作目录：实验中转、放大素材、渲染对照图，不属于模型资产
+_work/
+out/
+# 浏览器运行时/依赖
+node_modules/
+
+# 大体积原始资产（如需共享请用 Git LFS）
+# yuzuriha.psd 与 yuzuriha.psd2live 是工程源文件，保留
+
+# Python 缓存
+__pycache__/
+*.pyc

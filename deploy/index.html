@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>楪祈 - Live2D</title>
+<!-- Live2D 运行时:模型导出后无需改动 -->
+<script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
+<style>
+  body { margin: 0; background: transparent; overflow: hidden; }
+  #stage { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+// ============ 配置区(按需修改) ============
+const CONFIG = {
+  model: "./yuzuriha/yuzuriha.model3.json",   // 模型文件路径
+  x: 0.5, y: 1.0,                    // 锚点位置(屏幕比例,0.5/1.0 = 底部居中)
+  fitHeight: 0.98,                   // 角色高度占视口的比例
+  idleMotion: "Idle",                // 待机动作组名
+};
+// ==========================================
+
+const { live2d } = PIXI.live2d;
+(async function main() {
+  // `view` must be the canvas element; passing the container div fails silently and
+  // leaves the page blank.
+  const canvas = document.createElement("canvas");
+  const app = new PIXI.Application({
+    view: canvas,
+    autoStart: true,
+    backgroundAlpha: 0,
+    resizeTo: window,
+  });
+  document.getElementById("stage").appendChild(app.view);
+
+  // expose for diagnostics / embedding
+  window.__app = app;
+
+  // 缓存击穿:浏览器会缓存 .moc3/贴图/物理等子资源,重新导出模型后普通刷新可能仍加载
+  // 旧文件(表现为"改了没效果")。这里拉取 model3.json 后给每个引用文件都追加版本号,
+  // 强制每次都取最新导出。
+  const v = Date.now();
+  const bust = (p) => p + (p.includes("?") ? "&" : "?") + "v=" + v;
+  const settings = await (await fetch(bust(CONFIG.model), { cache: "no-store" })).json();
+  const fr = settings.FileReferences || {};
+  if (fr.Moc) fr.Moc = bust(fr.Moc);
+  if (Array.isArray(fr.Textures)) fr.Textures = fr.Textures.map(bust);
+  if (fr.Physics) fr.Physics = bust(fr.Physics);
+  if (fr.DisplayInfo) fr.DisplayInfo = bust(fr.DisplayInfo);
+  if (fr.Pose) fr.Pose = bust(fr.Pose);
+  if (fr.Motions) for (const g of Object.keys(fr.Motions))
+    fr.Motions[g] = fr.Motions[g].map((mo) => ({ ...mo, File: bust(mo.File) }));
+  if (Array.isArray(fr.Expressions))
+    fr.Expressions = fr.Expressions.map((ex) => ({ ...ex, File: bust(ex.File) }));
+  settings.url = CONFIG.model;   // 让加载器按此基准解析上面的相对路径
+
+  const model = await PIXI.live2d.Live2DModel.from(settings, {
+    autoInteract: true,          // 眼球跟随鼠标 + 点击反应
+    motionPreload: "IDLE",
+  });
+  window.__model = model;
+  app.stage.addChild(model);
+
+  // Fit the model to the viewport and place it at the CONFIG anchor.
+  // The 1536x1536 PSD canvas is mostly empty margin: the character only spans
+  // these fractions of it (measured from this export at neutral pose). Sizing
+  // against the full canvas would render the character ~8% short and push it
+  // off-centre, so scale and centre on the character box instead.
+  const CHAR = { x0: 0.202, x1: 0.794, y0: 0.029, y1: 0.946 };
+  const fit = () => {
+    const iw = model.internalModel.width;
+    const ih = model.internalModel.height;
+    const charH = (CHAR.y1 - CHAR.y0) * ih;
+    const charCx = ((CHAR.x0 + CHAR.x1) / 2) * iw;
+    const charBottom = CHAR.y1 * ih;
+
+    const scale = (window.innerHeight * CONFIG.fitHeight) / charH;
+    model.scale.set(scale);
+    model.x = window.innerWidth * CONFIG.x - charCx * scale;
+    model.y = window.innerHeight * CONFIG.y - charBottom * scale;
+  };
+  fit();
+  window.addEventListener("resize", fit);
+
+  // 待机动作循环播放
+  if (CONFIG.idleMotion) {
+    model.motion(CONFIG.idleMotion);
+  }
+
+  // 点击模型 → 头部挥手式反应。
+  // model3.json 没有 HitAreas(PSD2Live 不导出),所以 `model.on("hit")` 永远不触发;
+  // 改成按点击位置命中头部区域,再随机挑一个反应动作。
+  const reactions = ["Nod", "Shake"];
+  let lastReaction = 0;
+  canvas.addEventListener("pointerdown", (e) => {
+    // 用测得的人物包围盒换算头部区域(上部 1/4,水平中间 40%)
+    const s = model.scale.x;
+    const iw = model.internalModel.width;
+    const ih = model.internalModel.height;
+    const box = {
+      x: model.x + CHAR.x0 * iw * s,
+      y: model.y + CHAR.y0 * ih * s,
+      w: (CHAR.x1 - CHAR.x0) * iw * s,
+      h: (CHAR.y1 - CHAR.y0) * ih * s,
+    };
+    const r = canvas.getBoundingClientRect();
+    const px = e.clientX - r.left;
+    const py = e.clientY - r.top;
+    const head = { x: box.x + box.w * 0.3, y: box.y, w: box.w * 0.4, h: box.h * 0.25 };
+    if (px < head.x || px > head.x + head.w || py < head.y || py > head.y + head.h) return;
+    if (performance.now() - lastReaction < 2500) return;   // 别让连点打断动作
+    lastReaction = performance.now();
+    model.motion(reactions[Math.floor(Math.random() * reactions.length)]);
+  });
+})();
+</script>
+</body>
+</html>

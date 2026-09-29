@@ -1,0 +1,52 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "yuzuriha.moc3",
+		"Textures": [
+			"yuzuriha.4096/texture_00.png",
+			"yuzuriha.4096/texture_01.png",
+			"yuzuriha.4096/texture_02.png"
+		],
+		"Physics": "yuzuriha.physics3.json",
+		"DisplayInfo": "yuzuriha.cdi3.json",
+		"Motions": {
+			"Idle": [
+				{
+					"File": "yuzuriha.idle.motion3.json"
+				}
+			],
+			"Blink": [
+				{
+					"File": "yuzuriha.blink.motion3.json"
+				}
+			],
+			"Nod": [
+				{
+					"File": "yuzuriha.nod.motion3.json"
+				}
+			],
+			"Shake": [
+				{
+					"File": "yuzuriha.shake.motion3.json"
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthOpenY"
+			]
+		}
+	]
+}
