@@ -235,10 +235,6 @@
 		},
 		{
 			"Id": "ArtMeshFace",
-			"Name": "face-b"
-		},
-		{
-			"Id": "ArtMeshFace2",
 			"Name": "face-t"
 		},
 		{
