@@ -65,6 +65,14 @@ def main():
                 shutil.copy2(src, dst)
                 n += 1
     print(f"published {n} changed files -> {DEPLOY}")
+
+    # The PSD2Live physics tool can only emit independent 2-node pendulums, so the
+    # silky multi-node cloth wave (one pendulum chain, three depth-tapped outputs)
+    # lives in a post-export patch. Re-apply it to the freshly published physics
+    # file, otherwise every export reverts the ribbons to the stiff single swing.
+    import patch_cloth_physics  # noqa: E402
+    patch_cloth_physics.main(os.path.join(DEPLOY, "yuzuriha.physics3.json"))
+
     print("state:", st)
 
 

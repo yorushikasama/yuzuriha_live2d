@@ -90,6 +90,21 @@
 			"Id": "ParamHairBack",
 			"GroupId": "ParamGroupPhysics",
 			"Name": "后发摆动"
+		},
+		{
+			"Id": "ParamClothSway",
+			"GroupId": "",
+			"Name": "飘带摆动"
+		},
+		{
+			"Id": "ParamClothSway2",
+			"GroupId": "",
+			"Name": "飘带摆动2"
+		},
+		{
+			"Id": "ParamClothSway3",
+			"GroupId": "",
+			"Name": "飘带摆动3"
 		}
 	],
 	"ParameterGroups": [
@@ -170,6 +185,10 @@
 	],
 	"Drawables": [
 		{
+			"Id": "ArtMeshHeadwear",
+			"Name": "headwear"
+		},
+		{
 			"Id": "ArtMeshFrontHair",
 			"Name": "front hair"
 		},
@@ -180,10 +199,6 @@
 		{
 			"Id": "ArtMeshIridesR",
 			"Name": "irides-r"
-		},
-		{
-			"Id": "ArtMeshHeadwear",
-			"Name": "headwear"
 		},
 		{
 			"Id": "ArtMeshEyewhiteL",
@@ -218,24 +233,20 @@
 			"Name": "eyelash-l-1"
 		},
 		{
-			"Id": "ArtMeshMouth",
-			"Name": "mouth"
+			"Id": "ArtMeshMouthClose",
+			"Name": "cy_mouth_close_t"
 		},
 		{
-			"Id": "ArtMeshMouth_lip_0",
-			"Name": "mouth / 上唇描边"
-		},
-		{
-			"Id": "ArtMeshMouth_lip_1",
-			"Name": "mouth / 下唇描边"
+			"Id": "ArtMeshMouthOpen",
+			"Name": "cy_mouth_open_t"
 		},
 		{
 			"Id": "ArtMeshNose",
-			"Name": "nose"
+			"Name": "cy_nose_t"
 		},
 		{
 			"Id": "ArtMeshFace",
-			"Name": "face-t"
+			"Name": "cy_face_t"
 		},
 		{
 			"Id": "ArtMeshEarsL",

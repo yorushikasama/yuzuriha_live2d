@@ -12,3 +12,10 @@ node_modules/
 # Python 缓存
 __pycache__/
 *.pyc
+
+# 本地实验/备份产物（体积大且可再生）
+backups/
+face_refined/
+Cyrene20251105/
+.psd2live-*.tmp
+tools/state.txt
