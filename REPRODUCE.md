@@ -32,17 +32,15 @@ python tools/psd2live_mcp.py tools        # 应列出 21 个工具
 
 ```
 yuzuriha_live2d/
-├─ yuzuriha.psd                 29 MB  分层源图 · 原版（1536×1536，22 层，未改动）
-├─ yuzuriha_cyrene.psd          20 MB  分层源图 · 换脸版（23 层，脸鼻嘴换成 Cyrene）
+├─ variants/                    两条源图路径（见 §6.0）
+│  ├─ cyrene/                   换脸版：source.psd 20 MB / deploy/（网页成品）
+│  │                             index.html + moc3 + 3 页 4096 纹理 + 物理 + 动作
+│  └─ original/                 原版：  source.psd 28 MB / deploy/（待构建）
 ├─ yuzuriha.psd2live           226 MB  PSD2Live 工程 = 绑定的真相（见 §3 说明）
 ├─ REPRODUCE.md                        本文
 ├─ 模型说明.md                         完整制作日志：13 章，每一步的判断依据与实测数据
 ├─ Live2D-PSD分层与命名规范.md          分层命名标准
 ├─ 楪祈-素材补绘工单.md                 已知素材缺口清单
-│
-├─ deploy/                            可直接部署的网页成品
-│  ├─ index.html                      渲染器（含发珠渲染顺序修正）
-│  └─ yuzuriha/                       模型文件族（moc3 + 3 页 4096 纹理 + 物理 + 动作）
 │
 ├─ tools/                             全部自动化脚本（见 §5）
 ├─ docs/                              19 张验收图，每张对应一项修复
@@ -52,6 +50,7 @@ yuzuriha_live2d/
 ```
 
 `out/`（导出中转）、`_local/`（Cyrene 参考模型、备份）已 gitignore，不参与复现。
+仓库根不再放 PSD——源图统一在 `variants/*/source.psd`，避免两份路径各有一处真源。
 
 ---
 
@@ -166,25 +165,27 @@ python tools/export.py
 
 ## 6. 完整流程
 
-### 6.0 选哪份 PSD
+### 6.0 选哪条路径
 
-仓库里有两份源图，**选哪份取决于你要复现什么**：
+仓库里有两条完整路径，各自独立存放于 `variants/`：
 
-| | `yuzuriha.psd` | `yuzuriha_cyrene.psd` |
+| | `variants/original/` | `variants/cyrene/` |
 |---|---|---|
-| 层数 | 22 | 23 |
+| 源图 | `source.psd` 28 MB / 22 层 | `source.psd` 20 MB / 23 层 |
 | 脸 / 鼻 / 嘴 | 原 PSD 自己的 | **Cyrene 的** |
+| 头部墨迹（alpha≥64） | 16020 | **42020** |
 | 眼睛 / 眉毛 | 楪祈的 | 楪祈的（未动） |
 | 上衣 / 头发 / 四条飘带 | 楪祈的 | 楪祈的（未动） |
+| 模型产物 | 待构建 | `deploy/`（完整） |
 
 原版的 `nose` 和 `mouth` 几乎是空的（alpha ≥ 64 时只有 35 / 88 个墨像素，
 6×7 和 19×9 的几缕描边），所以换脸版的脸部细节明显更完整。
 
-**两条路径都是完整的**：
+**怎么选**：
 
-- 想要和本仓库成品一致的观感 → 用 `yuzuriha_cyrene.psd`
-- 想要纯净的原始素材、或没有 Cyrene 素材 → 用 `yuzuriha.psd`，
-  脸鼻嘴会弱一些（缺口清单见 `楪祈-素材补绘工单.md`）
+- 想要和线上成品一致的观感 → `variants/cyrene/`（含完整 `deploy/`）
+- 想要纯净的原始素材、或没有 Cyrene 素材 → `variants/original/`，
+  脸鼻嘴会弱很多（缺口清单见 `楪祈-素材补绘工单.md`）
 
 换脸版由脚本生成，可随时重建：
 
@@ -195,6 +196,13 @@ python tools/make_cyrene_psd.py
 它做四件事：删除原 `face`/`nose`/`mouth`，加入 `cy_face`/`cy_nose`/
 `cy_mouth_open`/`cy_mouth_close`，把它们插回原层序的同一位置
 （`ears-l` 之下、`eyelash-l` 之上，闭口在张口之上），并校验墨量与层序。
+
+导出时用 `PSD2LIVE_VARIANT` 选目标路径，两套模型不会混：
+
+```bash
+PSD2LIVE_VARIANT=cyrene   python tools/export.py
+PSD2LIVE_VARIANT=original python tools/export.py
+```
 
 > **psd-tools 1.19 的三个坑**（每个都花了一轮才摸清，已写进脚本注释）：
 > 1. `layer.numpy()` 读的是原始通道数据，新建层读回来是空的；
@@ -228,7 +236,7 @@ python tools/export.py
 
 **步骤 1 — 导入并自动绑定**
 
-PSD2Live 打开 `yuzuriha_cyrene.psd`（或 `yuzuriha.psd`，见 §6.0）。自动绑定会生成 25 个变形器：
+PSD2Live 打开 `variants/cyrene/source.psd`（或 `variants/original/source.psd`，见 §6.0）。自动绑定会生成 25 个变形器：
 
 ```
 DeformBodyXY (根)
@@ -311,7 +319,7 @@ python tools/export.py
 
 ```bash
 python tools/export.py
-# 检查 deploy/yuzuriha/yuzuriha.physics3.json
+# 检查 variants/cyrene/deploy/yuzuriha/yuzuriha.physics3.json
 ```
 
 ---

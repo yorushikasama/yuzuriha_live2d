@@ -15,9 +15,15 @@ from psd2live_mcp import Mcp  # noqa: E402
 
 # Overridable so the project can live outside D:\live2d (and so a contributor on
 # another machine does not have to edit the script).
+#
+# Two source paths ship side by side under variants/ (see REPRODUCE.md 6.0); each
+# publishes into its own deploy folder so the two models never mix. The default
+# is the Cyrene path, which is what the live site serves.
 ROOT = os.environ.get("PSD2LIVE_ROOT", r"D:\live2d")
+VARIANT = os.environ.get("PSD2LIVE_VARIANT", "cyrene")
 OUT = os.environ.get("PSD2LIVE_OUT", os.path.join(ROOT, "out"))
-DEPLOY = os.environ.get("PSD2LIVE_DEPLOY", os.path.join(ROOT, "deploy", "yuzuriha"))
+DEPLOY = os.environ.get("PSD2LIVE_DEPLOY",
+                        os.path.join(ROOT, "variants", VARIANT, "deploy", "yuzuriha"))
 
 
 def main():

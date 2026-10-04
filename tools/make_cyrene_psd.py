@@ -2,11 +2,11 @@
 
 Two PSDs on purpose
 -------------------
-    yuzuriha.psd           the original, untouched
-    yuzuriha_cyrene.psd    the same file with the head swapped
+    variants/original/source.psd   the original, untouched
+    variants/cyrene/source.psd     the same file with the head swapped
 
 Someone reproducing the model can start from either, or diff the two to see
-exactly what changed. Editing yuzuriha.psd in place would destroy that baseline.
+exactly what changed. Editing the original in place would destroy that baseline.
 
 Scripted rather than hand-edited in Photoshop
 ---------------------------------------------
@@ -45,6 +45,7 @@ Three psd-tools traps, each of which cost a round
 
 Usage:
     python tools/make_cyrene_psd.py
+    PSD2LIVE_ROOT=/path/to/repo python tools/make_cyrene_psd.py
 """
 from __future__ import annotations
 
@@ -58,8 +59,8 @@ from psd_tools.api.layers import PixelLayer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("PSD2LIVE_ROOT", os.path.dirname(HERE))
-SRC = os.path.join(ROOT, "yuzuriha.psd")
-DST = os.path.join(ROOT, "yuzuriha_cyrene.psd")
+SRC = os.path.join(ROOT, "variants", "original", "source.psd")
+DST = os.path.join(ROOT, "variants", "cyrene", "source.psd")
 ASSETS = os.path.join(ROOT, "assets", "trimmed")
 MANIFEST = os.path.join(ASSETS, "manifest.json")
 

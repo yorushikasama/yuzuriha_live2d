@@ -44,7 +44,7 @@ python export.py
 ```
 
 调用 `export` 导出到 `../out/`,再把有变化的文件复制到
-`../deploy/yuzuriha/`。
+`../variants/<路径>/deploy/yuzuriha/`。
 
 ## headpos.py — 量头部在画布中的位置
 

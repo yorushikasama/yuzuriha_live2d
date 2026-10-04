@@ -18,9 +18,9 @@
 ├─ Live2D-PSD分层与命名规范.md           分层/命名标准，以及"为运动而画"的要点
 ├─ 楪祈-素材补绘工单.md                  眼睛/嘴/鼻的补画清单（含 AI 参考图 prompt）
 │
-├─ deploy/                             成品：网页 + 模型，可直接部署
-│  ├─ index.html                       演示页（含缓存击穿 + 发珠渲染顺序修正）
-│  └─ yuzuriha/                        模型文件族（moc3 / 3 页 4096 贴图 / 物理 / 动作）
+├─ variants/                           两条源图路径，各自独立（见下）
+│  ├─ cyrene/                          换脸版：source.psd + deploy/（网页成品）
+│  └─ original/                        原版：  source.psd + deploy/（待构建）
 │
 ├─ tools/                              全部自动化脚本（幂等，可重复执行）
 ├─ docs/                               19 张验收图，每张对应一项修复
@@ -29,11 +29,22 @@
 
 `out/` 与 `_local/` 是本地工作目录，已 gitignore，不参与复现。
 
+## 两条源图路径
+
+| | [variants/original/](variants/original/) | [variants/cyrene/](variants/cyrene/) |
+|---|---|---|
+| 脸 / 鼻 / 嘴 | 原 PSD 自己的 | **Cyrene 的** |
+| 头部墨迹（alpha≥64） | 16020 | **42020** |
+| 其余 19 层 | 楪祈的 | 楪祈的（未动） |
+| 模型产物 | 待构建 | `deploy/`（完整） |
+
+**除脸鼻嘴外两条路径完全一致。** 原版的鼻子（6×7）和嘴巴（19×9）几乎只有几缕描边。
+
 ## 快速开始
 
 ```bash
 # 本地预览（需要 HTTP 服务，直接开 file:// 会被 CORS 拦住）
-cd deploy && python -m http.server 8899
+cd variants/cyrene/deploy && python -m http.server 8899
 # 然后打开 http://127.0.0.1:8899/index.html
 ```
 
@@ -43,8 +54,9 @@ cd deploy && python -m http.server 8899
 2. 用 `tools/psd2live_mcp.py` 通过 MCP 读写工程（令牌在注册表
    `HKCU\Software\JavaSoft\Prefs\io\github\psd2live\agent`）。
 3. 按 REPRODUCE.md §6 依次重播绑定脚本（换脸、飘带、裙摆、摆锤）。
-4. `tools/export.py` 导出并把运行时文件发布到 `deploy/yuzuriha/`，
+4. `tools/export.py` 导出并把运行时文件发布到 `variants/<路径>/deploy/yuzuriha/`，
    **并自动重跑物理补丁**（漏跑会让飘带全部僵死，见 REPRODUCE.md §7.5）。
+   用 `PSD2LIVE_VARIANT=original|cyrene` 选目标路径。
 5. 浏览器内逐帧验收：飘带联动、头颈贴合、眉毛可见性。
 
 ## 绑定根因与修复（本轮的真正问题）

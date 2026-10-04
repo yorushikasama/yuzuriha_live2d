@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!-- Acceptance harness: are the ribbons physically alive in this variant's model?
+     Two things this must get right (both cost a debugging round):
+       1. Cubism 4 core has no getParameterIndexById path that survives
+          pixi-live2d-display 0.4.0; read values with
+          core.getParameterValueById.
+       2. pixi's rAF stalls in a background tab, so step the pendulum by hand.
+          phys.evaluate MUST run before core.update(), and app.render() must
+          run before any geometry read. -->
+<html><head><meta charset="utf-8"><title>variant check</title>
+<script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
+<script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.10/dist/browser/pixi.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
+</head><body style="margin:0;background:#111">
+<div id="s" style="color:#0f0;font:12px monospace;padding:4px;z-index:9;position:fixed">loading...</div>
+<script>
+window.__R = {done:false, err:null, series:[]};
+const CLOTH = ['ParamClothSway','ParamClothSway2','ParamClothSway3'];
+(async () => {
+ try {
+  const app = new PIXI.Application({view: document.createElement('canvas'),
+      width:700, height:700, backgroundAlpha:0, antialias:true, autoDensity:true});
+  document.body.appendChild(app.view);
+  const model = await PIXI.live2d.Live2DModel.from('./yuzuriha/yuzuriha.model3.json', {autoInteract:false});
+  app.stage.addChild(model);
+  const core = model.internalModel.coreModel, phys = model.internalModel.physics;
+  const val = k => { try { return core.getParameterValueById(k); } catch(e){ return NaN; } };
+
+  const cdi = await (await fetch('./yuzuriha/yuzuriha.cdi3.json')).json();
+  const pj  = await (await fetch('./yuzuriha/yuzuriha.physics3.json')).json();
+  window.__R.drawables = cdi.Drawables.map(d => d.Name);
+  window.__R.params = cdi.Parameters.length;
+  window.__R.groups = pj.Meta.PhysicsDictionary.map(d => d.Id);
+
+  core.setParameterValueById('ParamBodyAngleX', 0.0);
+  for (let i=0;i<60;i++){ if(phys&&phys.evaluate) phys.evaluate(core,1/60); core.update(); app.render(); }
+  window.__R.rest = CLOTH.map(val);
+
+  core.setParameterValueById('ParamBodyAngleX', 9.0);
+  for (let i=0;i<240;i++){
+    if (phys&&phys.evaluate) phys.evaluate(core,1/60);
+    core.update(); app.render();
+    window.__R.series.push(CLOTH.map(val));
+  }
+  window.__R.peak = [0,1,2].map(j => Math.max(...window.__R.series.map(s=>Math.abs(s[j]||0))));
+  window.__R.done = true;
+  document.getElementById('s').textContent =
+    'drawables='+window.__R.drawables.length+' params='+window.__R.params+
+    ' peak='+window.__R.peak.map(v=>Number(v).toFixed(2));
+ } catch(e){ window.__R.err=String(e&&e.stack||e); window.__R.done=true;
+   document.getElementById('s').textContent=window.__R.err; }
+})();
+</script></body></html>

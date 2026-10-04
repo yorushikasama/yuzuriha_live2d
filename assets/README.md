@@ -54,7 +54,7 @@ m.call("asset", {"request": {
 然后按 REPRODUCE.md §6.1 重放绑定脚本。
 
 **注意**：`asset create` 会**原样保留**传入的图层顺序，cdi3 的 index 0 就是传入的第一项。
-想复现正确的层序，请参照 `deploy/yuzuriha/yuzuriha.cdi3.json` 的 `Drawables` 顺序。
+想复现正确的层序，请参照 `variants/cyrene/deploy/yuzuriha/yuzuriha.cdi3.json` 的 `Drawables` 顺序。
 
 ## 重新生成
 
