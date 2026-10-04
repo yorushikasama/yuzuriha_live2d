@@ -33,9 +33,9 @@ python tools/psd2live_mcp.py tools        # 应列出 21 个工具
 ```
 yuzuriha_live2d/
 ├─ variants/                    两条源图路径（见 §6.0）
-│  ├─ cyrene/                   换脸版：source.psd 20 MB / deploy/（网页成品）
+│  ├─ cyrene/                   换脸版：yuzuriha.psd 20 MB / deploy/（网页成品）
 │  │                             index.html + moc3 + 3 页 4096 纹理 + 物理 + 动作
-│  └─ original/                 原版：  source.psd 28 MB / deploy/（待构建）
+│  └─ original/                 原版：  yuzuriha.psd 28 MB / deploy/（待构建）
 ├─ yuzuriha.psd2live           226 MB  PSD2Live 工程 = 绑定的真相（见 §3 说明）
 ├─ REPRODUCE.md                        本文
 ├─ 模型说明.md                         完整制作日志：13 章，每一步的判断依据与实测数据
@@ -50,7 +50,7 @@ yuzuriha_live2d/
 ```
 
 `out/`（导出中转）、`_local/`（Cyrene 参考模型、备份）已 gitignore，不参与复现。
-仓库根不再放 PSD——源图统一在 `variants/*/source.psd`，避免两份路径各有一处真源。
+仓库根不再放 PSD——源图统一在 `variants/*/yuzuriha.psd`，避免两份路径各有一处真源。
 
 ---
 
@@ -171,7 +171,7 @@ python tools/export.py
 
 | | `variants/original/` | `variants/cyrene/` |
 |---|---|---|
-| 源图 | `source.psd` 28 MB / 22 层 | `source.psd` 20 MB / 23 层 |
+| 源图 | `yuzuriha.psd` 28 MB / 22 层 | `yuzuriha.psd` 20 MB / 23 层 |
 | 脸 / 鼻 / 嘴 | 原 PSD 自己的 | **Cyrene 的** |
 | 头部墨迹（alpha≥64） | 16020 | **42020** |
 | 眼睛 / 眉毛 | 楪祈的 | 楪祈的（未动） |
@@ -236,7 +236,7 @@ python tools/export.py
 
 **步骤 1 — 导入并自动绑定**
 
-PSD2Live 打开 `variants/cyrene/source.psd`（或 `variants/original/source.psd`，见 §6.0）。自动绑定会生成 25 个变形器：
+PSD2Live 打开 `variants/cyrene/yuzuriha.psd`（或 `variants/original/yuzuriha.psd`，见 §6.0）。自动绑定会生成 25 个变形器：
 
 ```
 DeformBodyXY (根)

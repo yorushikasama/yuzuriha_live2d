@@ -4,13 +4,15 @@
 
 | | [cyrene/](cyrene/) | [original/](original/) |
 |---|---|---|
-| 源图 | `source.psd` 19.3 MB / 23 层 | `source.psd` 27.7 MB / 22 层 |
+| 源图 | `yuzuriha.psd` 19.3 MB / 23 层 | `yuzuriha.psd` 27.7 MB / 22 层 |
 | 脸 / 鼻 / 嘴 | Cyrene 的 | 原 PSD 自己的 |
 | 头部墨迹（alpha≥64） | **42020** | 16020 |
 | 眼睛 / 眉毛 | 楪祈的 | 楪祈的 |
 | 身体 / 头发 / 四条飘带 | 楪祈的 | 楪祈的 |
-| 模型产物 | `deploy/`（15 MB，完整） | 待构建 |
-| 本地预览 | `cd variants/cyrene/deploy && python -m http.server 8899` | — |
+| 模型产物 | `deploy/yuzuriha/` 15 MB | `deploy/source/` 43 MB |
+| 画元数 | 32 | 33 |
+| 头部画元 | `cy_face_t` / `cy_nose_t` / `cy_mouth_open_t` / `cy_mouth_close_t` | `face-t` / `nose` / `mouth` |
+| 本地预览 | `cd variants/cyrene/deploy/yuzuriha && python -m http.server 8899` | `cd variants/original/deploy/source && python -m http.server 8899` |
 
 **除脸鼻嘴外，两条路径的其余 19 层完全一致。**
 
@@ -20,7 +22,7 @@
 ## 怎么产生的
 
 ```bash
-python tools/make_cyrene_psd.py     # 由 yuzuriha.psd 生成 cyrene 的 source.psd
+python tools/make_cyrene_psd.py     # 由 yuzuriha.psd 生成 cyrene 的 yuzuriha.psd
 ```
 
 脚本删除原 `face`/`nose`/`mouth`，加入四个 Cyrene 层，

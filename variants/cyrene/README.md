@@ -7,7 +7,7 @@
 
 | | |
 |---|---|
-| 源图 | `source.psd`（19.3 MB，23 层） |
+| 源图 | `yuzuriha.psd`（19.3 MB，23 层） |
 | PSD2Live 工程 | `project.psd2live`（226 MB，见下方说明） |
 | 模型产物 | `deploy/`（15 MB，网页可用） |
 
@@ -31,7 +31,7 @@
 
 ## 源图是怎么来的
 
-`source.psd` = `yuzuriha.psd` 删掉 `face`/`nose`/`mouth`，加入四个 Cyrene 层，
+`yuzuriha.psd` = `yuzuriha.psd` 删掉 `face`/`nose`/`mouth`，加入四个 Cyrene 层，
 并把层块插回**原层序的同一位置**（`ears-l` 之下、`eyelash-l` 之上，闭口在张口之上）。
 
 ```bash
@@ -43,13 +43,13 @@ python tools/make_cyrene_psd.py     # 确定性可重跑
 ## 工程文件
 
 `yuzuriha.psd2live`（仓库根，226 MB）就是本路径的 PSD2Live 工程——
-由 `source.psd` 经自动绑定 + 六个脚本重播而成。
+由 `yuzuriha.psd` 经自动绑定 + 六个脚本重播而成。
 
 未纳入 Git（226 MB > GitHub 100 MB 单文件限制），获取方式见
 [REPRODUCE.md §3](../../REPRODUCE.md)。
 
 > 换脸路径不需要再跑 `make_cyrene_psd.py` 之外的额外步骤：
-> 工程里的 `cy_*` 层就是 `source.psd` 里那四层，`replay_face_swap.py`
+> 工程里的 `cy_*` 层就是 `yuzuriha.psd` 里那四层，`replay_face_swap.py`
 > 只在**从原始工程迁移**时用。
 
 ## 构建产物

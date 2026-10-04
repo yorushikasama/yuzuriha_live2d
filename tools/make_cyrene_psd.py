@@ -2,8 +2,8 @@
 
 Two PSDs on purpose
 -------------------
-    variants/original/source.psd   the original, untouched
-    variants/cyrene/source.psd     the same file with the head swapped
+    variants/original/yuzuriha.psd   the original, untouched
+    variants/cyrene/yuzuriha.psd     the same file with the head swapped
 
 Someone reproducing the model can start from either, or diff the two to see
 exactly what changed. Editing the original in place would destroy that baseline.
@@ -59,8 +59,8 @@ from psd_tools.api.layers import PixelLayer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("PSD2LIVE_ROOT", os.path.dirname(HERE))
-SRC = os.path.join(ROOT, "variants", "original", "source.psd")
-DST = os.path.join(ROOT, "variants", "cyrene", "source.psd")
+SRC = os.path.join(ROOT, "variants", "original", "yuzuriha.psd")
+DST = os.path.join(ROOT, "variants", "cyrene", "yuzuriha.psd")
 ASSETS = os.path.join(ROOT, "assets", "trimmed")
 MANIFEST = os.path.join(ASSETS, "manifest.json")
 

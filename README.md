@@ -19,8 +19,8 @@
 ├─ 楪祈-素材补绘工单.md                  眼睛/嘴/鼻的补画清单（含 AI 参考图 prompt）
 │
 ├─ variants/                           两条源图路径，各自独立（见下）
-│  ├─ cyrene/                          换脸版：source.psd + deploy/（网页成品）
-│  └─ original/                        原版：  source.psd + deploy/（待构建）
+│  ├─ cyrene/                          换脸版：yuzuriha.psd + deploy/（网页成品）
+│  └─ original/                        原版：  yuzuriha.psd + deploy/（待构建）
 │
 ├─ tools/                              全部自动化脚本（幂等，可重复执行）
 ├─ docs/                               19 张验收图，每张对应一项修复
