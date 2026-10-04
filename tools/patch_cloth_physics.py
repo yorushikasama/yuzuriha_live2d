@@ -18,9 +18,12 @@ Both X-type sources take Type "X"; the angle sources take Type "Angle".
 Run after tools/export.py, or standalone for fast tuning.
 """
 import json
+import os
 import sys
 
-DEPLOY = r"D:\live2d\deploy\yuzuriha\yuzuriha.physics3.json"
+# Overridable for contributors working outside D:\live2d.
+ROOT = os.environ.get("PSD2LIVE_ROOT", r"D:\live2d")
+DEPLOY = os.path.join(ROOT, "deploy", "yuzuriha", "yuzuriha.physics3.json")
 
 # Pendulum nodes below the anchored root (node 0).
 # (radius, mobility, delay, acceleration) -- Cyrene-style: delay maxed, mobility rising.

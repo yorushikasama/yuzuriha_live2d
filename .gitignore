@@ -1,21 +1,21 @@
-# 工作目录：实验中转、放大素材、渲染对照图，不属于模型资产
+# 实验中转、渲染对照图、临时产物（可再生，不属于模型资产）
 _work/
 out/
+_local/
+
 # 浏览器运行时/依赖
 node_modules/
 
-# 大体积原始资产（如需共享请用 Git LFS）
-# yuzuriha.psd（29MB）保留；yuzuriha.psd2live 已 294MB，超 GitHub 100MB 单文件限制，
-# 不再入库：本地文件即工程真相（含全部修复），重新导出用 PSD2Live 打开它
+# 大体积原始资产
+# yuzuriha.psd（29MB）保留：分层源图是模型真相的根
+# yuzuriha.psd2live 已 226MB，超 GitHub 100MB 单文件限制，不入库。
+# 复现绑定请看 REPRODUCE.md §3（三种获取方式）。
 *.psd2live
 
 # Python 缓存
 __pycache__/
 *.pyc
 
-# 本地实验/备份产物（体积大且可再生）
-backups/
-face_refined/
-Cyrene20251105/
-.psd2live-*.tmp
+# MCP 状态缓存 / 应用保存临时文件
 tools/state.txt
+.psd2live-*.tmp

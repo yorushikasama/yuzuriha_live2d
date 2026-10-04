@@ -3,19 +3,30 @@
 用 **PSD2Live 自动绑定** 生成的 Live2D 半身模型，导出为 Cubism 标准格式，
 浏览器端用 pixi-live2d-display 运行时渲染。
 
+> **要复现这个模型的绑定与运动效果，请看 [REPRODUCE.md](REPRODUCE.md)。**
+> 本文只做项目概览；逐步复现步骤、绑定层级图、验收基准、已知坑全在 REPRODUCE.md。
+
 ## 目录
 
 ```
-├─ yuzuriha.psd              分层源图（29 MB，1536×1536）
-├─ yuzuriha.psd2live         PSD2Live 工程（294 MB；超 GitHub 100MB 限制未入库，本地可重新导出）
-├─ 模型说明.md                制作记录：踩过的坑、每轮修复的做法与结论
-├─ Live2D-PSD分层与命名规范.md  分层/命名标准，以及"为运动而画"的要点
-├─ 楪祈-素材补绘工单.md        眼睛/嘴/鼻的补画清单（含 AI 参考图 prompt）
-├─ tools/                    PSD2Live MCP 客户端 + 渲染/导出脚本
-└─ deploy/                   成品：网页 + 模型，可直接部署
-   ├─ index.html             演示页（含缓存击穿，刷新即见最新导出）
-   └─ yuzuriha/              模型文件（moc3 / 物理 / 动作 / 4096 贴图）
+├─ yuzuriha.psd                 29 MB   分层源图（1536×1536）
+├─ yuzuriha.psd2live           226 MB   PSD2Live 工程 = 绑定的真相
+│                                      （超 GitHub 100MB 限制未入库，见 REPRODUCE.md §3）
+├─ REPRODUCE.md                         复现指南：前置条件 / 完整流程 / 已知坑
+├─ 模型说明.md                          制作日志：13 章，每步的判断依据与实测数据
+├─ Live2D-PSD分层与命名规范.md           分层/命名标准，以及"为运动而画"的要点
+├─ 楪祈-素材补绘工单.md                  眼睛/嘴/鼻的补画清单（含 AI 参考图 prompt）
+│
+├─ deploy/                             成品：网页 + 模型，可直接部署
+│  ├─ index.html                       演示页（含缓存击穿 + 发珠渲染顺序修正）
+│  └─ yuzuriha/                        模型文件族（moc3 / 3 页 4096 贴图 / 物理 / 动作）
+│
+├─ tools/                              全部自动化脚本（幂等，可重复执行）
+├─ docs/                               19 张验收图，每张对应一项修复
+└─ assets/trimmed/                     裁剪后的 35 张图层 PNG + 坐标 manifest
 ```
+
+`out/` 与 `_local/` 是本地工作目录，已 gitignore，不参与复现。
 
 ## 快速开始
 
@@ -30,9 +41,10 @@ cd deploy && python -m http.server 8899
 1. PSD 分层 → PSD2Live 导入，自动生成网格、变形器层级与参数绑定。
 2. 用 `tools/psd2live_mcp.py` 通过 MCP 读写工程（令牌在注册表
    `HKCU\Software\JavaSoft\Prefs\io\github\psd2live\agent`）。
-3. `tools/export.py` 导出并把运行时文件发布到 `deploy/yuzuriha/`。
-4. `tools/render.py` 用 PSD2Live 自己的渲染器输出姿势对照表 —— 排查绑定问题时
-   **以这个为准**，它是建模端的权威结果。
+3. 按 REPRODUCE.md §6 依次重播绑定脚本（换脸、飘带、裙摆、摆锤）。
+4. `tools/export.py` 导出并把运行时文件发布到 `deploy/yuzuriha/`，
+   **并自动重跑物理补丁**（漏跑会让飘带全部僵死，见 REPRODUCE.md §7.5）。
+5. 浏览器内逐帧验收：飘带联动、头颈贴合、眉毛可见性。
 
 ## 绑定根因与修复（本轮的真正问题）
 
@@ -100,6 +112,49 @@ controller 会用到全范围，内置 idle/nod/shake 动作幅度更小）。
 | 眨眼 | EyeOpen 1 / 0.5 / 0 | 眼白高度 18.8 → 10.7 → 7.8 px，眼睑正常闭合 |
 | 眼球跟随 | EyeBallX/Y = ±1 | 瞳孔各移动 ±2.8 px |
 | 鼠标跟随链路 | 派发真实 pointermove | focus 目标值随光标到 ±1，头/眼参数跟随（见下"调试注意"） |
+
+## 飘带（四条独立联动）
+
+后飘带、外侧两根前飘带、裙摆双飘尾各有一条**三段嵌套 warp 链**，
+共享 `ParamClothSway` / `2` / `3`，形成沿飘带向下传播的相位渐变波。
+
+| 部位 | 网格 | 脚本 | 弧根位置 |
+|---|---|---|---|
+| 后飘带 | `ArtMeshHandwearL/R` | `cloth_wave.py` | 0.18 / 0.42 / 0.62 |
+| 外侧前飘带 | `ArtMeshTopwear` / `Topwear2` | `front_cloth.py` | 0.34 / 0.55 / 0.70 |
+| 裙摆双飘尾 | `ArtMeshTopwear3` | `skirt_cloth.py` | 0.32 / 0.55 / 0.75 |
+
+裙摆那层的弧根特意设在**开衩处**而非图顶，否则上衣会被一起拖动。
+
+**实测**（互不重叠取样框，统计 alpha 差 >24 的像素数）：
+
+| 参数 | 后飘带L | 后飘带R | 前飘带L | 前飘带R | 上衣 |
+|---|---|---|---|---|---|
+| Sway +1 | 43583 | 47421 | 15193 | 15644 | **0** |
+| Sway2 +1 | 37139 | 39212 | 8718 | 8601 | **0** |
+| Sway3 +1 | 24410 | 24720 | 1627 | 1495 | **0** |
+
+位移随 S1→S2→S3 递减，正是三段链的深度加权；上衣峰值 0–2 px 保持刚性。
+
+**物理**：PSD2Live 只能生成独立的 2 节点摆锤，且用参数串联摆锤时下游读数会衰减到 0。
+`patch_cloth_physics.py` 在导出后把飘带物理重写为**单条 4 节点摆锤**，
+三个输出按深度取 node1/2/3（Scale 3.0 / 4.5 / 6.0）。节点参数参照 Cyrene 的裙摆链调校：
+Delay 拉满（延迟大而丝滑，非弹簧感），Mobility 沿链递增，Acceleration 递减。
+
+> **PSD2Live 1.3.0 的预览不模拟物理**——`ParamBodyAngleX=10` 持续 5 秒，
+> 三个飘带参数和内置的 `ParamHairFront` 全部恒为 0。所以应用里看不到飘带摆动是正常的，
+> 导出的 physics3 才是真实效果。`inapp_physics.py` 建的三条预览摆锤只为让工程状态自洽。
+
+## 换脸（Cyrene）
+
+用 Cyrene 的脸/鼻/嘴替换旧 PSD originals，保留 yuzuriha 的眼睛和眉毛
+（它们在脸层之上，是用户明确要保留的部分）。`replay_face_swap.py` 可一键重播。
+
+**命名冲突是这里最大的坑**：Cyrene 四层与 PSD originals 撞名，
+后者被自动改名为 `ArtMeshFace2` / `ArtMeshNose2` / `ArtMeshMouth`。
+换脸收尾必须**打开新层、关闭旧层**，否则导出选项
+`HiddenDrawableOmittedByExportOption` 会把新层整个踢出 moc，
+结果 PSD2Live 和网页都显示旧脸（两边一致，但一致地错）。
 
 ## 已知待办
 

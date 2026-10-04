@@ -13,8 +13,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from psd2live_mcp import Mcp  # noqa: E402
 
-OUT = r"D:\live2d\out"
-DEPLOY = r"D:\live2d\deploy\yuzuriha"
+# Overridable so the project can live outside D:\live2d (and so a contributor on
+# another machine does not have to edit the script).
+ROOT = os.environ.get("PSD2LIVE_ROOT", r"D:\live2d")
+OUT = os.environ.get("PSD2LIVE_OUT", os.path.join(ROOT, "out"))
+DEPLOY = os.environ.get("PSD2LIVE_DEPLOY", os.path.join(ROOT, "deploy", "yuzuriha"))
 
 
 def main():
