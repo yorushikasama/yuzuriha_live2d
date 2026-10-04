@@ -9,7 +9,8 @@
 ## 目录
 
 ```
-├─ yuzuriha.psd                 29 MB   分层源图（1536×1536）
+├─ yuzuriha.psd                 29 MB   分层源图 · 原版（22 层，未改动）
+├─ yuzuriha_cyrene.psd          20 MB   分层源图 · 换脸版（23 层，脸鼻嘴用 Cyrene 的）
 ├─ yuzuriha.psd2live           226 MB   PSD2Live 工程 = 绑定的真相
 │                                      （超 GitHub 100MB 限制未入库，见 REPRODUCE.md §3）
 ├─ REPRODUCE.md                         复现指南：前置条件 / 完整流程 / 已知坑
@@ -149,6 +150,11 @@ Delay 拉满（延迟大而丝滑，非弹簧感），Mobility 沿链递增，Ac
 
 用 Cyrene 的脸/鼻/嘴替换旧 PSD originals，保留 yuzuriha 的眼睛和眉毛
 （它们在脸层之上，是用户明确要保留的部分）。`replay_face_swap.py` 可一键重播。
+
+**源图有两份**：`yuzuriha.psd`（原版，22 层）与 `yuzuriha_cyrene.psd`（换脸版，23 层）。
+后者由 `python tools/make_cyrene_psd.py` 生成，删掉原 `face`/`nose`/`mouth`、
+加入四个 Cyrene 层、并把它们插回原层序的同一位置。
+实测两张脸有 48.5% 的像素不同，差异区域 137×161 正好覆盖整张脸。
 
 **命名冲突是这里最大的坑**：Cyrene 四层与 PSD originals 撞名，
 后者被自动改名为 `ArtMeshFace2` / `ArtMeshNose2` / `ArtMeshMouth`。

@@ -32,7 +32,8 @@ python tools/psd2live_mcp.py tools        # 应列出 21 个工具
 
 ```
 yuzuriha_live2d/
-├─ yuzuriha.psd                 29 MB  分层源图（1536×1536）
+├─ yuzuriha.psd                 29 MB  分层源图 · 原版（1536×1536，22 层，未改动）
+├─ yuzuriha_cyrene.psd          20 MB  分层源图 · 换脸版（23 层，脸鼻嘴换成 Cyrene）
 ├─ yuzuriha.psd2live           226 MB  PSD2Live 工程 = 绑定的真相（见 §3 说明）
 ├─ REPRODUCE.md                        本文
 ├─ 模型说明.md                         完整制作日志：13 章，每一步的判断依据与实测数据
@@ -148,6 +149,7 @@ Cyrene 的四层和 PSD originals 撞名：
 | `inapp_physics.py` | 在应用内建三条预览摆锤（应用/导出一致） | ✅ |
 | `patch_cloth_physics.py` | 导出后把飘带物理重写为单条 4 节点摆锤 | ✅ |
 | `export_trimmed.py` | 导出裁剪后的图层 PNG + 坐标 | ✅ |
+| `make_cyrene_psd.py` | 生成换脸版 PSD（`yuzuriha_cyrene.psd`） | ✅ |
 | `build_motions.py` | 生成六段克制的 motion3 动作 | ✅ |
 | `p2l_view.py` | 通过 MCP 触发应用内 view 渲染（调试用） | — |
 | `alpha_noise_check.py` | 诊断 alpha 噪声对包围盒的影响 | — |
@@ -163,6 +165,44 @@ python tools/export.py
 ---
 
 ## 6. 完整流程
+
+### 6.0 选哪份 PSD
+
+仓库里有两份源图，**选哪份取决于你要复现什么**：
+
+| | `yuzuriha.psd` | `yuzuriha_cyrene.psd` |
+|---|---|---|
+| 层数 | 22 | 23 |
+| 脸 / 鼻 / 嘴 | 原 PSD 自己的 | **Cyrene 的** |
+| 眼睛 / 眉毛 | 楪祈的 | 楪祈的（未动） |
+| 上衣 / 头发 / 四条飘带 | 楪祈的 | 楪祈的（未动） |
+
+原版的 `nose` 和 `mouth` 几乎是空的（alpha ≥ 64 时只有 35 / 88 个墨像素，
+6×7 和 19×9 的几缕描边），所以换脸版的脸部细节明显更完整。
+
+**两条路径都是完整的**：
+
+- 想要和本仓库成品一致的观感 → 用 `yuzuriha_cyrene.psd`
+- 想要纯净的原始素材、或没有 Cyrene 素材 → 用 `yuzuriha.psd`，
+  脸鼻嘴会弱一些（缺口清单见 `楪祈-素材补绘工单.md`）
+
+换脸版由脚本生成，可随时重建：
+
+```bash
+python tools/make_cyrene_psd.py
+```
+
+它做四件事：删除原 `face`/`nose`/`mouth`，加入 `cy_face`/`cy_nose`/
+`cy_mouth_open`/`cy_mouth_close`，把它们插回原层序的同一位置
+（`ears-l` 之下、`eyelash-l` 之上，闭口在张口之上），并校验墨量与层序。
+
+> **psd-tools 1.19 的三个坑**（每个都花了一轮才摸清，已写进脚本注释）：
+> 1. `layer.numpy()` 读的是原始通道数据，新建层读回来是空的；
+>    要用 `layer.composite()` 才是真实像素。
+> 2. `layer.visible = False` 在保存时**会丢弃像素**（face 从 15897 墨像素变 0），
+>    所以要"隐藏"只能用 `remove()`。
+> 3. `PixelLayer.frompil()` 把层加到**最底部**，要正确定位得用
+>    `psd.insert(index, layer)`。
 
 ### 6.1 最短路径（拿到工程文件）
 
@@ -188,7 +228,7 @@ python tools/export.py
 
 **步骤 1 — 导入并自动绑定**
 
-PSD2Live 打开 `yuzuriha.psd`。自动绑定会生成 25 个变形器：
+PSD2Live 打开 `yuzuriha_cyrene.psd`（或 `yuzuriha.psd`，见 §6.0）。自动绑定会生成 25 个变形器：
 
 ```
 DeformBodyXY (根)
