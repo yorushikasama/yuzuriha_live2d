@@ -4,7 +4,7 @@ Two PSDs on purpose
 -------------------
     yuzuriha.psd2live  (input)   the PSD2Live project, which EMBEDS the
                                 original source PSD at source/original.psd
-    variants/cyrene/yuzuriha.psd (output)  the same file with the head swapped
+    yuzuriha.psd                     (output)  the same file with the head swapped
 
 Only the Cyrene path ships now. The original is not a separate artefact: it
 lives inside the .psd2live project (27.7 MB, 22 layers, sha256
@@ -68,7 +68,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("PSD2LIVE_ROOT", os.path.dirname(HERE))
 PROJECT = os.path.join(ROOT, "yuzuriha.psd2live")
 SRC_IN_PROJECT = "source/original.psd"
-DST = os.path.join(ROOT, "variants", "cyrene", "yuzuriha.psd")
+DST = os.path.join(ROOT, "yuzuriha.psd")
 ASSETS = os.path.join(ROOT, "assets", "trimmed")
 MANIFEST = os.path.join(ASSETS, "manifest.json")
 

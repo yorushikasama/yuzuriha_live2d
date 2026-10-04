@@ -6,10 +6,8 @@ _local/
 # 浏览器运行时/依赖
 node_modules/
 
-# 大体积原始资产
-# yuzuriha.psd（29MB）保留：分层源图是模型真相的根
-# yuzuriha.psd2live 已 226MB，超 GitHub 100MB 单文件限制，不入库。
-# 复现绑定请看 REPRODUCE.md §3（三种获取方式）。
+# PSD2Live 工程（226 MB，超 GitHub 100MB 单文件限制）
+# 内嵌原版源图 source/original.psd；获取方式见 REPRODUCE.md §3
 *.psd2live
 
 # Python 缓存
@@ -19,3 +17,7 @@ __pycache__/
 # MCP 状态缓存 / 应用保存临时文件
 tools/state.txt
 .psd2live-*.tmp
+
+# 验收用的临时检测页（由 tools/variant_check.html 按需复制）
+yuzuriha/variant_check.html
+yuzuriha/check.html

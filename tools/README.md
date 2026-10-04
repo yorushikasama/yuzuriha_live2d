@@ -44,7 +44,7 @@ python export.py
 ```
 
 调用 `export` 导出到 `../out/`,再把有变化的文件复制到
-`../variants/cyrene/deploy/<族名>/`。
+`../yuzuriha/`。
 
 ## headpos.py — 量头部在画布中的位置
 

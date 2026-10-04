@@ -22,13 +22,13 @@ const CLOTH = ['ParamClothSway','ParamClothSway2','ParamClothSway3'];
   const app = new PIXI.Application({view: document.createElement('canvas'),
       width:700, height:700, backgroundAlpha:0, antialias:true, autoDensity:true});
   document.body.appendChild(app.view);
-  const model = await PIXI.live2d.Live2DModel.from('./yuzuriha/yuzuriha.model3.json', {autoInteract:false});
+  const model = await PIXI.live2d.Live2DModel.from('./yuzuriha.model3.json', {autoInteract:false});
   app.stage.addChild(model);
   const core = model.internalModel.coreModel, phys = model.internalModel.physics;
   const val = k => { try { return core.getParameterValueById(k); } catch(e){ return NaN; } };
 
-  const cdi = await (await fetch('./yuzuriha/yuzuriha.cdi3.json')).json();
-  const pj  = await (await fetch('./yuzuriha/yuzuriha.physics3.json')).json();
+  const cdi = await (await fetch('./yuzuriha.cdi3.json')).json();
+  const pj  = await (await fetch('./yuzuriha.physics3.json')).json();
   window.__R.drawables = cdi.Drawables.map(d => d.Name);
   window.__R.params = cdi.Parameters.length;
   window.__R.groups = pj.Meta.PhysicsDictionary.map(d => d.Id);

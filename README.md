@@ -9,17 +9,17 @@
 ## 目录
 
 ```
-├─ yuzuriha.psd2live           226 MB   PSD2Live 工程 = 绑定的真相
+├─ yuzuriha.psd                20 MB   分层源图（23 层，内嵌原版脸的可重建版本）
+├─ yuzuriha.psd2live           226 MB  PSD2Live 工程 = 绑定的真相
 │                                      （超 GitHub 100MB 限制未入库，见 REPRODUCE.md §3）
-│                                      内嵌原版源图 source/original.psd
+├─ yuzuriha/                          模型产物：演示页 + moc3 + 纹理 + 物理 + 动作
+│  ├─ index.html                      演示页（缓存击穿 + 发珠渲染顺序修正）
+│  └─ yuzuriha.*                      模型文件族
+│
 ├─ REPRODUCE.md                         复现指南：前置条件 / 完整流程 / 已知坑
 ├─ 模型说明.md                          制作日志：13 章，每步的判断依据与实测数据
 ├─ Live2D-PSD分层与命名规范.md           分层/命名标准，以及"为运动而画"的要点
 ├─ 楪祈-素材补绘工单.md                  眼睛/嘴/鼻的补画清单（含 AI 参考图 prompt）
-│
-├─ variants/cyrene/                    换脸版源图 + 网页成品
-│  ├─ yuzuriha.psd                     20 MB · 23 层（可由 make_cyrene_psd.py 重建）
-│  └─ deploy/yuzuriha/                 模型文件族 + 演示页
 │
 ├─ tools/                              全部自动化脚本（幂等，可重复执行）
 ├─ docs/                               19 张验收图，每张对应一项修复
@@ -45,7 +45,7 @@ python tools/make_cyrene_psd.py
 
 ```bash
 # 本地预览（需要 HTTP 服务，直接开 file:// 会被 CORS 拦住）
-cd variants/cyrene/deploy/yuzuriha && python -m http.server 8899
+cd yuzuriha && python -m http.server 8899
 # 然后打开 http://127.0.0.1:8899/index.html
 ```
 
@@ -55,7 +55,7 @@ cd variants/cyrene/deploy/yuzuriha && python -m http.server 8899
 2. 用 `tools/psd2live_mcp.py` 通过 MCP 读写工程（令牌在注册表
    `HKCU\Software\JavaSoft\Prefs\io\github\psd2live\agent`）。
 3. 按 REPRODUCE.md §6 依次重播绑定脚本（换脸、飘带、裙摆、摆锤）。
-4. `tools/export.py` 导出并把运行时文件发布到 `variants/cyrene/deploy/<族名>/`，
+4. `tools/export.py` 导出并把运行时文件发布到 `yuzuriha/`，
    **并自动重跑物理补丁**（漏跑会让飘带全部僵死，见 REPRODUCE.md §7.5）。
 5. 浏览器内逐帧验收：飘带联动、头颈贴合、眉毛可见性。
 
