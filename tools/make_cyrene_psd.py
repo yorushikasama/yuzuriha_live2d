@@ -2,11 +2,14 @@
 
 Two PSDs on purpose
 -------------------
-    variants/original/yuzuriha.psd   the original, untouched
-    variants/cyrene/yuzuriha.psd     the same file with the head swapped
+    yuzuriha.psd2live  (input)   the PSD2Live project, which EMBEDS the
+                                original source PSD at source/original.psd
+    variants/cyrene/yuzuriha.psd (output)  the same file with the head swapped
 
-Someone reproducing the model can start from either, or diff the two to see
-exactly what changed. Editing the original in place would destroy that baseline.
+Only the Cyrene path ships now. The original is not a separate artefact: it
+lives inside the .psd2live project (27.7 MB, 22 layers, sha256
+55f2b3769c1109c901fc46b7e8ab5186...), so the swap stays reproducible without
+keeping a second source PSD in the tree.
 
 Scripted rather than hand-edited in Photoshop
 ---------------------------------------------
@@ -46,9 +49,13 @@ Three psd-tools traps, each of which cost a round
 Usage:
     python tools/make_cyrene_psd.py
     PSD2LIVE_ROOT=/path/to/repo python tools/make_cyrene_psd.py
+
+Requires yuzuriha.psd2live in the project root (226 MB, not in git -- see
+REPRODUCE.md 3).
 """
 from __future__ import annotations
 
+import io
 import json
 import os
 
@@ -59,7 +66,8 @@ from psd_tools.api.layers import PixelLayer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.environ.get("PSD2LIVE_ROOT", os.path.dirname(HERE))
-SRC = os.path.join(ROOT, "variants", "original", "yuzuriha.psd")
+PROJECT = os.path.join(ROOT, "yuzuriha.psd2live")
+SRC_IN_PROJECT = "source/original.psd"
 DST = os.path.join(ROOT, "variants", "cyrene", "yuzuriha.psd")
 ASSETS = os.path.join(ROOT, "assets", "trimmed")
 MANIFEST = os.path.join(ASSETS, "manifest.json")
@@ -107,9 +115,23 @@ def names(psd):
     return [l.name for l in psd]
 
 
+def read_source_psd():
+    """Pull the untouched original out of the .psd2live project."""
+    if not os.path.exists(PROJECT):
+        raise SystemExit(
+            "yuzuriha.psd2live not found in %s. It embeds the original source PSD "
+            "(source/original.psd), which this script needs. See REPRODUCE.md 3 for "
+            "how to obtain it." % ROOT)
+    import zipfile
+    with zipfile.ZipFile(PROJECT) as z:
+        if SRC_IN_PROJECT not in z.namelist():
+            raise SystemExit("%s has no %s" % (PROJECT, SRC_IN_PROJECT))
+        return PSDImage.open(io.BytesIO(z.read(SRC_IN_PROJECT)))
+
+
 def main():
     parts = load_parts()
-    psd = PSDImage.open(SRC)
+    psd = read_source_psd()
     before = names(psd)
     print("source: %dx%d, %d layers" % (psd.width, psd.height, len(psd)))
 

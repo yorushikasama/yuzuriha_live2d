@@ -32,11 +32,11 @@ python tools/psd2live_mcp.py tools        # 应列出 21 个工具
 
 ```
 yuzuriha_live2d/
-├─ variants/                    两条源图路径（见 §6.0）
-│  ├─ cyrene/                   换脸版：yuzuriha.psd 20 MB / deploy/（网页成品）
-│  │                             index.html + moc3 + 3 页 4096 纹理 + 物理 + 动作
-│  └─ original/                 原版：  yuzuriha.psd 28 MB / deploy/（待构建）
+├─ variants/cyrene/            换脸版源图 + 网页成品
+│  ├─ yuzuriha.psd              20 MB · 23 层（可由 tools/make_cyrene_psd.py 重建）
+│  └─ deploy/yuzuriha/          index.html + moc3 + 3 页 4096 纹理 + 物理 + 动作
 ├─ yuzuriha.psd2live           226 MB  PSD2Live 工程 = 绑定的真相（见 §3 说明）
+│                                      内嵌原版源图 source/original.psd
 ├─ REPRODUCE.md                        本文
 ├─ 模型说明.md                         完整制作日志：13 章，每一步的判断依据与实测数据
 ├─ Live2D-PSD分层与命名规范.md          分层命名标准
@@ -148,7 +148,7 @@ Cyrene 的四层和 PSD originals 撞名：
 | `inapp_physics.py` | 在应用内建三条预览摆锤（应用/导出一致） | ✅ |
 | `patch_cloth_physics.py` | 导出后把飘带物理重写为单条 4 节点摆锤 | ✅ |
 | `export_trimmed.py` | 导出裁剪后的图层 PNG + 坐标 | ✅ |
-| `make_cyrene_psd.py` | 生成换脸版 PSD（`yuzuriha_cyrene.psd`） | ✅ |
+| `make_cyrene_psd.py` | 从工程内嵌的原版源图生成换脸版 PSD | ✅ |
 | `build_motions.py` | 生成六段克制的 motion3 动作 | ✅ |
 | `p2l_view.py` | 通过 MCP 触发应用内 view 渲染（调试用） | — |
 | `alpha_noise_check.py` | 诊断 alpha 噪声对包围盒的影响 | — |
@@ -165,27 +165,34 @@ python tools/export.py
 
 ## 6. 完整流程
 
-### 6.0 选哪条路径
+### 6.0 源图只有一份
 
-仓库里有两条完整路径，各自独立存放于 `variants/`：
+仓库里只保留**换脸版**源图 `variants/cyrene/yuzuriha.psd`（20 MB / 23 层）。
+原版（22 层）没有单独存放——它内嵌在 `yuzuriha.psd2live` 的
+`source/original.psd` 里，换脸源图可从中逐字节重建：
 
-| | `variants/original/` | `variants/cyrene/` |
-|---|---|---|
-| 源图 | `yuzuriha.psd` 28 MB / 22 层 | `yuzuriha.psd` 20 MB / 23 层 |
-| 脸 / 鼻 / 嘴 | 原 PSD 自己的 | **Cyrene 的** |
-| 头部墨迹（alpha≥64） | 16020 | **42020** |
-| 眼睛 / 眉毛 | 楪祈的 | 楪祈的（未动） |
-| 上衣 / 头发 / 四条飘带 | 楪祈的 | 楪祈的（未动） |
-| 模型产物 | 待构建 | `deploy/`（完整） |
+```bash
+python tools/make_cyrene_psd.py     # 实测输出与仓库里的文件 sha256 一致
+```
+
+**为什么要换脸**（alpha ≥ 64 时的墨迹量）：
+
+| | 图层 | 墨迹像素 | 实际尺寸 |
+|---|---|---|---|
+| 原版 | `face` | 15897 | 131×160 |
+| | `nose` | **35** | **6×7** |
+| | `mouth` | **88** | **19×9** |
+| | 合计 | 16020 | |
+| 换脸版 | `cy_face` | 17124 | 141×164 |
+| | `cy_nose` | 5751 | 79×107 |
+| | `cy_mouth_open` | 9834 | 118×114 |
+| | `cy_mouth_close` | 9311 | 118×108 |
+| | 合计 | **42020** | |
+
+原版的鼻子和嘴巴几乎只有几缕描边，墨迹量只有换脸版的 38%。
 
 原版的 `nose` 和 `mouth` 几乎是空的（alpha ≥ 64 时只有 35 / 88 个墨像素，
 6×7 和 19×9 的几缕描边），所以换脸版的脸部细节明显更完整。
-
-**怎么选**：
-
-- 想要和线上成品一致的观感 → `variants/cyrene/`（含完整 `deploy/`）
-- 想要纯净的原始素材、或没有 Cyrene 素材 → `variants/original/`，
-  脸鼻嘴会弱很多（缺口清单见 `楪祈-素材补绘工单.md`）
 
 换脸版由脚本生成，可随时重建：
 
@@ -197,11 +204,10 @@ python tools/make_cyrene_psd.py
 `cy_mouth_open`/`cy_mouth_close`，把它们插回原层序的同一位置
 （`ears-l` 之下、`eyelash-l` 之上，闭口在张口之上），并校验墨量与层序。
 
-导出时用 `PSD2LIVE_VARIANT` 选目标路径，两套模型不会混：
+导出：
 
 ```bash
-PSD2LIVE_VARIANT=cyrene   python tools/export.py
-PSD2LIVE_VARIANT=original python tools/export.py
+python tools/export.py     # -> variants/cyrene/deploy/<族名>/
 ```
 
 > **psd-tools 1.19 的三个坑**（每个都花了一轮才摸清，已写进脚本注释）：
@@ -236,7 +242,7 @@ python tools/export.py
 
 **步骤 1 — 导入并自动绑定**
 
-PSD2Live 打开 `variants/cyrene/yuzuriha.psd`（或 `variants/original/yuzuriha.psd`，见 §6.0）。自动绑定会生成 25 个变形器：
+PSD2Live 打开 `variants/cyrene/yuzuriha.psd`。自动绑定会生成 25 个变形器：
 
 ```
 DeformBodyXY (根)

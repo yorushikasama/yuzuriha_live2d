@@ -9,18 +9,17 @@
 ## 目录
 
 ```
-├─ yuzuriha.psd                 29 MB   分层源图 · 原版（22 层，未改动）
-├─ yuzuriha_cyrene.psd          20 MB   分层源图 · 换脸版（23 层，脸鼻嘴用 Cyrene 的）
 ├─ yuzuriha.psd2live           226 MB   PSD2Live 工程 = 绑定的真相
 │                                      （超 GitHub 100MB 限制未入库，见 REPRODUCE.md §3）
+│                                      内嵌原版源图 source/original.psd
 ├─ REPRODUCE.md                         复现指南：前置条件 / 完整流程 / 已知坑
 ├─ 模型说明.md                          制作日志：13 章，每步的判断依据与实测数据
 ├─ Live2D-PSD分层与命名规范.md           分层/命名标准，以及"为运动而画"的要点
 ├─ 楪祈-素材补绘工单.md                  眼睛/嘴/鼻的补画清单（含 AI 参考图 prompt）
 │
-├─ variants/                           两条源图路径，各自独立（见下）
-│  ├─ cyrene/                          换脸版：yuzuriha.psd + deploy/（网页成品）
-│  └─ original/                        原版：  yuzuriha.psd + deploy/（待构建）
+├─ variants/cyrene/                    换脸版源图 + 网页成品
+│  ├─ yuzuriha.psd                     20 MB · 23 层（可由 make_cyrene_psd.py 重建）
+│  └─ deploy/yuzuriha/                 模型文件族 + 演示页
 │
 ├─ tools/                              全部自动化脚本（幂等，可重复执行）
 ├─ docs/                               19 张验收图，每张对应一项修复
@@ -29,22 +28,24 @@
 
 `out/` 与 `_local/` 是本地工作目录，已 gitignore，不参与复现。
 
-## 两条源图路径
+## 脸部来源
 
-| | [variants/original/](variants/original/) | [variants/cyrene/](variants/cyrene/) |
-|---|---|---|
-| 脸 / 鼻 / 嘴 | 原 PSD 自己的 | **Cyrene 的** |
-| 头部墨迹（alpha≥64） | 16020 | **42020** |
-| 其余 19 层 | 楪祈的 | 楪祈的（未动） |
-| 模型产物 | 待构建 | `deploy/`（完整） |
+脸 / 鼻 / 嘴来自第三方模型 **Cyrene**，其余 19 层（身体、头发、服装、四条飘带、
+眼睛、眉毛）是楪祈自己的。
 
-**除脸鼻嘴外两条路径完全一致。** 原版的鼻子（6×7）和嘴巴（19×9）几乎只有几缕描边。
+原 PSD 自己的 `nose`（6×7）和 `mouth`（19×9）几乎只有几缕描边——墨迹量只有
+Cyrene 版的 38%，所以换脸是必要的。原版 PSD 没有单独存放，它内嵌在
+`yuzuriha.psd2live` 的 `source/original.psd` 里，换脸源图可从中重建：
+
+```bash
+python tools/make_cyrene_psd.py
+```
 
 ## 快速开始
 
 ```bash
 # 本地预览（需要 HTTP 服务，直接开 file:// 会被 CORS 拦住）
-cd variants/cyrene/deploy && python -m http.server 8899
+cd variants/cyrene/deploy/yuzuriha && python -m http.server 8899
 # 然后打开 http://127.0.0.1:8899/index.html
 ```
 
@@ -54,9 +55,8 @@ cd variants/cyrene/deploy && python -m http.server 8899
 2. 用 `tools/psd2live_mcp.py` 通过 MCP 读写工程（令牌在注册表
    `HKCU\Software\JavaSoft\Prefs\io\github\psd2live\agent`）。
 3. 按 REPRODUCE.md §6 依次重播绑定脚本（换脸、飘带、裙摆、摆锤）。
-4. `tools/export.py` 导出并把运行时文件发布到 `variants/<路径>/deploy/yuzuriha/`，
+4. `tools/export.py` 导出并把运行时文件发布到 `variants/cyrene/deploy/<族名>/`，
    **并自动重跑物理补丁**（漏跑会让飘带全部僵死，见 REPRODUCE.md §7.5）。
-   用 `PSD2LIVE_VARIANT=original|cyrene` 选目标路径。
 5. 浏览器内逐帧验收：飘带联动、头颈贴合、眉毛可见性。
 
 ## 绑定根因与修复（本轮的真正问题）
@@ -163,10 +163,11 @@ Delay 拉满（延迟大而丝滑，非弹簧感），Mobility 沿链递增，Ac
 用 Cyrene 的脸/鼻/嘴替换旧 PSD originals，保留 yuzuriha 的眼睛和眉毛
 （它们在脸层之上，是用户明确要保留的部分）。`replay_face_swap.py` 可一键重播。
 
-**源图有两份**：`yuzuriha.psd`（原版，22 层）与 `yuzuriha_cyrene.psd`（换脸版，23 层）。
-后者由 `python tools/make_cyrene_psd.py` 生成，删掉原 `face`/`nose`/`mouth`、
-加入四个 Cyrene 层、并把它们插回原层序的同一位置。
+换脸版源图由 `python tools/make_cyrene_psd.py` 从工程内嵌的原版 PSD 生成：
+删掉原 `face`/`nose`/`mouth`、加入四个 Cyrene 层、并把它们插回原层序的同一位置
+（`ears-l` 之下、`eyelash-l` 之上，闭口在张口之上）。
 实测两张脸有 48.5% 的像素不同，差异区域 137×161 正好覆盖整张脸。
+脚本是确定性的——重跑得到逐字节相同的文件。
 
 **命名冲突是这里最大的坑**：Cyrene 四层与 PSD originals 撞名，
 后者被自动改名为 `ArtMeshFace2` / `ArtMeshNose2` / `ArtMeshMouth`。
