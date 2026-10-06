@@ -29,6 +29,14 @@
 				{
 					"File": "yuzuriha.shake.motion3.json"
 				}
+			],
+			"TapBody": [
+				{
+					"File": "yuzuriha.nod.motion3.json"
+				},
+				{
+					"File": "yuzuriha.shake.motion3.json"
+				}
 			]
 		}
 	},
