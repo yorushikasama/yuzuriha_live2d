@@ -46,6 +46,21 @@ python export.py
 调用 `export` 导出到 `../out/`,再把有变化的文件复制到
 `../yuzuriha/`。
 
+## publish_blog.py — 发布到博客并压缩贴图
+
+```bash
+python publish_blog.py                        # 默认目标 D:\code\Firefly
+BLOG_ROOT=/path/to/blog python publish_blog.py
+python publish_blog.py --size 1024 --colors 128
+```
+
+三步:补TapBody 动作组(PSD2Live 重导出会丢)→ 把贴图重采样并量化成
+palette PNG → 带 prune 同步进博客的 `public/`。
+
+贴图能压到 ~1% 是因为 PSD 画布 98% 透明、画风是扁平赛璐璐;
+2048 相对挂件 ~440×680 的物理尺寸还有约 3 倍超采样。`--size` /
+`--colors` 可调,`D:\live2d\yuzuriha\` 里的 4096 原图不动。
+
 ## headpos.py — 量头部在画布中的位置
 
 ```bash
