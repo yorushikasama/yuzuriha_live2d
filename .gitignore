@@ -21,3 +21,6 @@ tools/state.txt
 # 验收用的临时检测页（由 tools/variant_check.html 按需复制）
 yuzuriha/variant_check.html
 yuzuriha/check.html
+
+# 发布 zip：从已入库的 yuzuriha/ 手工打包的派生产物，不入库
+deploy/
